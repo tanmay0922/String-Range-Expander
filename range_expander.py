@@ -1,44 +1,47 @@
-#code for stage 5
+#code for stage 6
 def expand_ranges(s):
     result = []
+    seen = set()
     parts = s.split(',')
 
     for part in parts:
         part = part.strip()
+        if not part:
+            continue
 
-        # Handle ranges with optional step: e.g., "1-10:2"
-        if '-' in part:
-            if ':' in part:
-                range_part, step_str = part.split(':')
-                start_str, end_str = range_part.split('-')
-            else:
-                start_str, end_str = part.split('-')
-                step_str = None
-
-            if not start_str.strip().isdigit() or not end_str.strip().isdigit():
-                raise ValueError(f"Invalid range: '{part}'")
-
-            start, end = int(start_str), int(end_str)
-
-            # Handle optional step
-            if step_str is not None:
-                if not step_str.strip().isdigit():
-                    raise ValueError(f"Invalid step in range: '{part}'")
-                step = int(step_str)
-                if step <= 0:
-                    raise ValueError(f"Step must be positive: '{part}'")
-            else:
-                step = 1
-
-            if start <= end:
-                result.extend(range(start, end + 1, step))
-            else:
-                result.extend(range(start, end - 1, -step))
-        
+        if ':' in part:
+            range_part, step_part = part.split(':')
+            step = int(step_part.strip())
         else:
-            # Validate standalone number
-            if not part.isdigit():
-                raise ValueError(f"Invalid number: '{part}'")
-            result.append(int(part))
+            range_part = part
+            step = 1
+
+        if '-' in range_part:
+            start_str, end_str = range_part.split('-')
+            if not (start_str.strip().isdigit() and end_str.strip().isdigit()):
+                raise ValueError(f"Invalid numeric range: '{part}'")
+            start = int(start_str)
+            end = int(end_str)
+
+            if step == 0:
+                raise ValueError("Step value cannot be zero.")
+
+            # Determine direction based on start and end
+            if start <= end:
+                expanded = list(range(start, end + 1, step))
+            else:
+                expanded = list(range(start, end - 1, -step))
+
+            for num in expanded:
+                if num not in seen:
+                    result.append(num)
+                    seen.add(num)
+        else:
+            if not range_part.strip().isdigit():
+                raise ValueError(f"Invalid numeric value: '{part}'")
+            num = int(range_part)
+            if num not in seen:
+                result.append(num)
+                seen.add(num)
 
     return result
