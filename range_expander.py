@@ -1,4 +1,4 @@
-#code for stage 4 
+#code for stage 5
 def expand_ranges(s):
     result = []
     parts = s.split(',')
@@ -6,20 +6,35 @@ def expand_ranges(s):
     for part in parts:
         part = part.strip()
 
+        # Handle ranges with optional step: e.g., "1-10:2"
         if '-' in part:
-            start_str, end_str = part.split('-')
+            if ':' in part:
+                range_part, step_str = part.split(':')
+                start_str, end_str = range_part.split('-')
+            else:
+                start_str, end_str = part.split('-')
+                step_str = None
 
-            # Validate that both start and end are integers
             if not start_str.strip().isdigit() or not end_str.strip().isdigit():
                 raise ValueError(f"Invalid range: '{part}'")
 
             start, end = int(start_str), int(end_str)
 
-            if start <= end:
-                result.extend(range(start, end + 1))
+            # Handle optional step
+            if step_str is not None:
+                if not step_str.strip().isdigit():
+                    raise ValueError(f"Invalid step in range: '{part}'")
+                step = int(step_str)
+                if step <= 0:
+                    raise ValueError(f"Step must be positive: '{part}'")
             else:
-                # Handle reversed ranges
-                result.extend(range(start, end - 1, -1))
+                step = 1
+
+            if start <= end:
+                result.extend(range(start, end + 1, step))
+            else:
+                result.extend(range(start, end - 1, -step))
+        
         else:
             # Validate standalone number
             if not part.isdigit():
@@ -27,9 +42,3 @@ def expand_ranges(s):
             result.append(int(part))
 
     return result
-
-
-if __name__ == "__main__":
-    import sys
-    input_str = sys.argv[1]
-    print(expand_ranges(input_str))
